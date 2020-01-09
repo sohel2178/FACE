@@ -16,7 +16,7 @@ with open('labels.pickle','rb') as f:
     known_labels = pickle.load(f)
 
 
-cap = cv2.VideoCapture('http://192.168.1.38:4747/mjpegfeed?640x480')
+cap = cv2.VideoCapture('http://192.168.1.25:4747/mjpegfeed?640x480')
 
 process_this_frame = True
 
@@ -45,6 +45,8 @@ while(True):
 
         # Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
         rgb_small_frame = small_frame[:, :, ::-1]
+
+
 
 
         if process_this_frame:
@@ -76,9 +78,10 @@ while(True):
 
                         name_list.append(name)
 
-                        if len(name_list)>=10:
-                            if all_same(name_list[-10:]):
-                                client.send_message(b"Hello")
+                        if len(name_list)>=8:
+                            if all_same(name_list[-8:]):
+                                print("Found Face")
+                                client.send_message(b"UNLOCK")
                                 name_list=[]
 
         # print(rgb_small_frame)
@@ -86,7 +89,7 @@ while(True):
         # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         # Display the resulting frame
-        cv2.imshow('frame',frame)
+        cv2.imshow('Face Detector',frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
