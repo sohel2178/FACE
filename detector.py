@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import pickle
 import client
+import requests
 
 
 known_encodings = []
@@ -15,12 +16,16 @@ with open('images.pickle','rb') as f:
 with open('labels.pickle','rb') as f:
     known_labels = pickle.load(f)
 
+URL = "http://167.71.227.221:2255/api/cameradevices"
+mac_address = "5002914802ca"
+r = requests.get(URL+"/"+mac_address)
+data = r.json()
+IP = data['ip']
+PORT = data['port']
 
-cap = cv2.VideoCapture('http://192.168.1.25:4747/mjpegfeed?640x480')
 
+cap = cv2.VideoCapture('http://192.168.1.19:4747/mjpegfeed?640x480')
 process_this_frame = True
-
-
 name_list = []
 
 
@@ -31,10 +36,6 @@ def all_same(l):
 while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
-
-    # frame = cv2.UMat(frame)
-
-    # print(type(bb))
 
     if ret:
 
@@ -58,7 +59,7 @@ while(True):
             for face_encoding in face_encodings:
                 face_distances = face_recognition.face_distance(known_encodings, face_encoding)
 
-                if min(face_distances) <=0.35:
+                if min(face_distances) <=0.40:
 
                     best_match_index = np.argmin(face_distances)
                     name = known_labels[best_match_index]
@@ -76,12 +77,14 @@ while(True):
 
                         cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
+                        # client.send_message(b"UNLOCK",IP,PORT)
+                        # print("Found Face")
                         name_list.append(name)
 
                         if len(name_list)>=8:
                             if all_same(name_list[-8:]):
                                 print("Found Face")
-                                client.send_message(b"UNLOCK")
+                                client.send_message(b"UNLOCK",IP,PORT)
                                 name_list=[]
 
         # print(rgb_small_frame)
